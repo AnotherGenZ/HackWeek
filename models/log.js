@@ -6,9 +6,8 @@ const logSchema = new Schema({
     change: { type: String, required: true, enum: ['create', 'update', 'delete'] },
     guildPart: { type: String, required: true, enum: ['guild', 'role', 'channel'] },
     partID: { type: String, required: true },
-    property: { type: String, required: true },
-    oldValue: { type: String, required: true },
-    newValue: { type: String, required: true },
+    oldValue: { type: Object, required: true },
+    newValue: { type: Object, required: true },
     uuid: { type: String, required: true, default: uuid() }
 });
 
