@@ -30,6 +30,7 @@
   "dependencies": {
     "dotenv": "^8.0.0",
     "eris": "^0.10.0",
-    "mongoose": "^5.6.1"
+    "mongoose": "^5.6.1",
+    "uuid": "^3.3.2"
   }
 }
