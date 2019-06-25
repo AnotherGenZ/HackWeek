@@ -1,0 +1,35 @@
+{
+  "name": "guildgit",
+  "version": "1.0.0",
+  "description": "A Git log for Discord guilds",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrJohnCoder/HackWeek.git"
+  },
+  "author": "",
+  "contributors": [
+    {
+      "name": "MrJohnCoder"
+    },
+    {
+      "name": "DeJayDev"
+    },
+    {
+      "name": "Piero"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MrJohnCoder/HackWeek/issues"
+  },
+  "homepage": "https://github.com/MrJohnCoder/HackWeek#readme",
+  "dependencies": {
+    "dotenv": "^8.0.0",
+    "eris": "^0.10.0",
+    "mongoose": "^5.6.1"
+  }
+}
