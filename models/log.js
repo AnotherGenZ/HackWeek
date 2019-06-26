@@ -9,7 +9,8 @@ const logSchema = new Schema({
     oldValue: { type: Object, required: true },
     newValue: { type: Object, required: true },
     commitID: { type: String, required: true, default: uuid() },
-    timestamp: { type: Date, required: true, default: new Date() }
+    timestamp: { type: Date, required: true, default: new Date() },
+    perpID: { type: String, required: true }
 });
 
 module.exports = model('Log', logSchema);

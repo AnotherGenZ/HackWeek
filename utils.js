@@ -87,20 +87,27 @@ function diff(oldValue, newValue) {
 
 async function createVirtualRepresentation(db, commit) { // commit should not be commitID but _id
     let change = await db.Log.findOne({ _id: Types.ObjectId(commit) }).lean().exec();
-    
+
     return await db.Log.aggregate([
         {
             $match: {
                 _id: { $lt: change._id },
-                partID: change.partID,
+                guildID: change.guildID
             }
         },
         {
             $group: {
-                _id: "$partID",
+                _id: { partID: '$partID', part: '$guildPart' },
                 virtual: {
-                    $mergeObjects: "$newValue"
+                    $mergeObjects: '$newValue'
                 }
+            }
+        },
+        {
+            $project: {
+                _id: '$_id.partID',
+                type: '$_id.part',
+                virtual: 1
             }
         }
     ]).exec();
