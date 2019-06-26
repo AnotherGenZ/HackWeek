@@ -2,7 +2,7 @@ const { cleanGuild, diff } = require('../utils');
 
 module.exports = async (bot, db, guild, oldGuild) => {
     const guildJSON = cleanGuild(guild);
-    const oldGuildJSON = cleanGuild(oldGuild);
+    const oldGuildJSON = cleanGuild(oldGuild, true);
 
     let changedKeys = diff(oldGuildJSON, guildJSON);
 
@@ -10,8 +10,8 @@ module.exports = async (bot, db, guild, oldGuild) => {
     let newValue = {};
 
     for (let key of changedKeys) {
-        oldValue[key] = oldChannelJSON[key];
-        newValue[key] = oldChannelJSON[key];
+        oldValue[key] = oldGuildJSON[key];
+        newValue[key] = guildJSON[key];
     }
 
     await db.Log.create({

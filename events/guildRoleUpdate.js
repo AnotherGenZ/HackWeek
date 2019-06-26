@@ -2,7 +2,7 @@ const { cleanRole, diff } = require('../utils');
 
 module.exports = async (bot, db, guild, role, oldRole) => {
     const roleJSON = cleanRole(role);
-    const oldRoleJSON = cleanRole(oldRole);
+    const oldRoleJSON = cleanRole(oldRole, true);
 
     let changedKeys = diff(oldRoleJSON, roleJSON);
 
@@ -10,8 +10,8 @@ module.exports = async (bot, db, guild, role, oldRole) => {
     let newValue = {};
 
     for (let key of changedKeys) {
-        oldValue[key] = oldChannelJSON[key];
-        newValue[key] = oldChannelJSON[key];
+        oldValue[key] = oldRoleJSON[key];
+        newValue[key] = roleJSON[key];
     }
 
     await db.Log.create({
