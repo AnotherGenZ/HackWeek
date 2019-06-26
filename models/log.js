@@ -8,7 +8,7 @@ const logSchema = new Schema({
     partID: { type: String, required: true },
     oldValue: { type: Object, required: true },
     newValue: { type: Object, required: true },
-    uuid: { type: String, required: true, default: uuid() }
+    commitID: { type: String, required: true, default: uuid() }
 });
 
 module.exports = model('Log', logSchema);
