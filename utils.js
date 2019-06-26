@@ -1,4 +1,5 @@
 const deepDiff = require('deep-diff');
+const { Types } = require('mongoose');
 
 function cleanGuild(guild, alreadyJSON = false) {
     let guildJSON = guild;
@@ -84,9 +85,31 @@ function diff(oldValue, newValue) {
     return changed;
 }
 
+async function createVirtualRepresentation(db, commit) { // commit should not be commitID but _id
+    let change = await db.Log.findOne({ _id: Types.ObjectId(commit) }).lean().exec();
+    
+    return await db.Log.aggregate([
+        {
+            $match: {
+                _id: { $lt: change._id },
+                partID: change.partID,
+            }
+        },
+        {
+            $group: {
+                _id: "$partID",
+                virtual: {
+                    $mergeObjects: "$newValue"
+                }
+            }
+        }
+    ]).exec();
+}
+
 module.exports = {
     cleanGuild,
     cleanChannel,
     cleanRole,
-    diff
+    diff,
+    createVirtualRepresentation
 };
