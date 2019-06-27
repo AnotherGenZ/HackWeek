@@ -22,7 +22,7 @@ module.exports = async (bot, db, channel, oldChannel) => {
                 guildID: channel.guild.id,
                 change: 'update',
                 guildPart: 'channel',
-                partID: channel.guild.id,
+                partID: channel.id,
                 perpID: user.id,
                 oldValue,
                 newValue

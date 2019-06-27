@@ -12,7 +12,7 @@ module.exports = async (bot, db, guild, role) => {
                 change: 'delete',
                 guildPart: 'role',
                 partID: guild.id,
-                perpID: user.id,
+                perpID: role.id,
                 oldValue: roleJSON,
                 newValue: {}
             });
