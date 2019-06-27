@@ -53,7 +53,6 @@ async function createRole(opts) {
 }
 */
 async function createChannel(opts) {
-    console.log('PASSED', opts.data)
     const channel = await opts.bot.guilds.get(opts.guildID).createChannel(JSON.stringify({name: 'temp'}))
     opts.affectedID = channel.id
     return await module.exports(opts)
