@@ -34,21 +34,27 @@ async function revert(bot, db, msg, commitID) {
     switch (commit.change) {
         case 'create': {
             if (commit.guildPart === 'channel') {
-                bot.deleteChannel(commit.partID, 'Revert Git action');
+                await bot.deleteChannel(commit.partID, 'Revert Git action');
             } else if (commit.guildPart === 'role') {
-                bot.deleteRole(commit.guildID, commit.partID, 'Revert git action');
+                await bot.deleteRole(commit.guildID, commit.partID, 'Revert git action');
             }
         }
         case 'update': {
             switch (commit.guildPart) {
                 case 'guild': {
-                    bot.editGuild(commit.guildID, commit.oldValue, 'Revert git action');
+                    await bot.editGuild(commit.guildID, commit.oldValue, 'Revert git action');
                 }
                 case 'channel': {
-                    bot.editChannel(commit.partID, commit.oldValue, 'Revert git action');
+                    await bot.editChannel(commit.partID, commit.oldValue, 'Revert git action');
                 }
                 case 'role': {
-                    bot.editGuild(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
+                    await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
+
+                    if (oldValue.hasOwnProperty('position')) {
+                        let role = bot.guilds.get(commit.guildID).roles.get(commit.partID);
+
+                        await role.editPosition(oldValue.position);
+                    }
                 }
             }
         }
