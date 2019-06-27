@@ -51,9 +51,7 @@ async function revert(bot, db, msg, commitID) {
                     await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
 
                     if (oldValue.hasOwnProperty('position')) {
-                        let role = bot.guilds.get(commit.guildID).roles.get(commit.partID);
-
-                        await role.editPosition(oldValue.position);
+                        await bot.editRolePosition(commit.guildID, commit.partID, oldValue.position);
                     }
                 }
             }
