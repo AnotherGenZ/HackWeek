@@ -4,7 +4,7 @@ const magic = require('../handlers');
 async function rollback(bot, db, msg, commitID) {
     let commit = await db.Log.findOne({ commitID });
 
-    if (commit.guildID != msg.channel.guild.id) return 'That commit does not belong to this guild!';
+    if (commit.guildID != msg.channel.guild.id) return bot.createMessage(msg.channel.id, 'That commit does not belong to this guild!');
 
     let reps = await createRep(db, commit._id);
 
@@ -29,7 +29,7 @@ async function rollback(bot, db, msg, commitID) {
 async function revert(bot, db, msg, commitID) {
     let commit = await db.Log.findOne({ commitID });
 
-    if (commit.guildID != msg.channel.guild.id) return 'That commit does not belong to this guild!';
+    if (commit.guildID != msg.channel.guild.id) return bot.createMessage(msg.channel.id, 'That commit does not belong to this guild!');
 
     switch (commit.change) {
         case 'create': {
