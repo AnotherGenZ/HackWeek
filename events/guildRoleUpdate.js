@@ -22,8 +22,8 @@ module.exports = async (bot, db, guild, role, oldRole) => {
                 guildID: guild.id,
                 change: 'update',
                 guildPart: 'role',
-                partID: guild.id,
-                perpID: role.id,
+                partID: role.id,
+                perpID: user.id,
                 oldValue,
                 newValue
             });
