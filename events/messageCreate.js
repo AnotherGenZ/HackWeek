@@ -91,6 +91,6 @@ module.exports = async (bot, db, msg) => {
     } else if (msg.content.startsWith('!revert')) {
         const commitID = msg.content.replace('!revert ', '');
 
-
+        revert(bot, db, msg, commitID);
     }
 };
