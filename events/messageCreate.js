@@ -76,8 +76,9 @@ module.exports = async (bot, db, msg) => {
     if (msg.content === '!ping') {
         bot.createMessage(msg.channel.id, 'Pong!');
     } else if (msg.content.startsWith('!fetch')) {
-        const suffix = msg.content.replace('!fetch ', '')
-        const rep = await createRep(db, suffix)
+        const commitID = msg.content.replace('!fetch ', '')
+        const commit = await db.Log.findOne({ commitID });
+        const rep = await createRep(db, commit._id)
         console.log(rep)
     } else if (msg.content.startsWith('!goto')) {
         const commitID = msg.content.replace('!goto ', '');
