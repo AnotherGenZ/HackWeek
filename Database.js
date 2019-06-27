@@ -8,7 +8,7 @@ class DB {
     constructor(dbURL) {
         this._models = {};
 
-        console.log('Connecting to mongodb...');
+        console.log('Connecting to Mongo...');
 
         mongoose.connect(dbURL, {
             poolSize: 5,
@@ -22,7 +22,7 @@ class DB {
         const connection = mongoose.connection;
 
         connection.on('error', console.error);
-        connection.once('open', () => console.log('Connected to mongo.'));
+        connection.once('open', () => console.log('Connected to Mongo.'));
 
         fs
             .readdirSync(modelPath)
