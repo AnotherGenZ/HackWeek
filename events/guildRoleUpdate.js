@@ -14,12 +14,19 @@ module.exports = async (bot, db, guild, role, oldRole) => {
         newValue[key] = roleJSON[key];
     }
 
-    await db.Log.create({
-        guildID: guild.id,
-        change: 'update',
-        guildPart: 'role',
-        partID: role.id,
-        oldValue,
-        newValue
-    });
+    if (guild.members.get(bot.user.id).permission.json['viewAuditLogs']) {
+        setTimeout(async () => {
+            const logArray = await guild.getAuditLogs(1, null, 31) // 31 is ROLE_UPDATE
+            const user = logArray.users[0]
+            await db.Log.create({
+                guildID: guild.id,
+                change: 'update',
+                guildPart: 'role',
+                partID: guild.id,
+                perpID: user.id,
+                oldValue,
+                newValue
+            });
+        }, 1000)
+    }
 };

@@ -33,7 +33,15 @@ const supportedGuildProperties = [
 }
 */
 async function createRole(opts) {
-
+    const roleObject = {
+        name: 'tempgitrole'
+    }
+    if (opts.data.name) roleObject.name = opts.data.name
+    if (opts.data.hasOwnProperty('permissions')) roleObject.permissions = opts.data.permissions
+    if (opts.data.hasOwnProperty('color')) roleObject.color = opts.data.color
+    if (opts.data.hasOwnProperty('hoist')) roleObject.hoist = opts.data.hoist
+    if (opts.data.hasOwnProperty('mentionable')) roleObject.mentionable = opts.data.mentionable
+    await opts.bot.guilds.get(opts.guildID).createRole(roleObject, 'Fulfilling git action')
 }
 
 
@@ -45,7 +53,16 @@ async function createRole(opts) {
 }
 */
 async function createChannel(opts) {
-    
+    console.log('PASSED', opts.data)
+    const channel = await opts.bot.guilds.get(opts.guildID).createChannel(JSON.stringify({name: 'temp'}))
+    opts.affectedID = channel.id
+    return await module.exports(opts)
+    // const channelObject = {
+    //     name: opts.data.name,
+    //     type: opts.data.type
+    // }
+    // if (opts.data.parentID) channelObject.parentID = opts.data.parentID
+    // await opts.bot.guilds.get(opts.guildID).createChannel(channelObject, 'Fulfilling git action')
 }
 
 
@@ -64,8 +81,9 @@ module.exports = async (opts) => {
             if (!opts.affectedID) { // The channel was deleted and the bot needs to recreate it.
                 await createChannel(opts)
             } else {
-                const channel = await bot.getChannel(opts.affectedID)
-                if (opts.data.permissionOverwrites.length !== 0) {
+                const channel = await opts.bot.getChannel(opts.affectedID)
+                if (!channel) return await createChannel(opts)
+                if (opts.data.hasOwnProperty('permissionOverwrites') && opts.data.permissionOverwrites.length !== 0) {
                     const passedPermIDs = opts.data.permissionOverwrites.map(o => o.id)
                     const unneccessaryPerms = channel.permissionOverwrites.map(o => o.id).filter(o => !passedPermIDs.includes(o)) // These perms are not present in the passed data and should be discarded
                     passedPermIDs.forEach(async permID => {
