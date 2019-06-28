@@ -44,9 +44,11 @@ async function revert(bot, db, msg, commitID) {
                 case 'guild': {
                     await bot.editGuild(commit.guildID, commit.oldValue, 'Revert git action');
                 }
+                break
                 case 'channel': {
                     await bot.editChannel(commit.partID, commit.oldValue, 'Revert git action');
                 }
+                break
                 case 'role': {
                     await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
 
@@ -54,20 +56,27 @@ async function revert(bot, db, msg, commitID) {
                         await bot.editRolePosition(commit.guildID, commit.partID, oldValue.position);
                     }
                 }
+                break
             }
         }
         case 'delete': {
-            let reps = await createRep(db, commit._id);
-            let rep = reps.find(r => r._id === commit.partID);
+            console.log('del')
+            if (commit.guildPart === 'channel') {
+                await bot.createChannel(commit.guildID, commit.oldValue.name, commit.oldValue.type, 'Revert Git action', commit.oldValue);
+            } else if (commit.guildPart === 'role') {
+                await bot.createRole(commit.guildID, commit.oldValue, 'Revert git action');
+            }
+            // let reps = await createRep(db, commit._id);
+            // let rep = reps.find(r => r._id === commit.partID);
 
-            const opts = {
-                bot: bot,
-                guildID: msg.channel.guild.id,
-                type: rep.type,
-                data: rep.virtual
-            };
+            // const opts = {
+            //     bot: bot,
+            //     guildID: msg.channel.guild.id,
+            //     type: rep.type,
+            //     data: rep.virtual
+            // };
 
-            await magic(opts);
+            // await magic(opts);
         }
     }
 }
