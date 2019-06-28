@@ -91,6 +91,31 @@ module.exports = async (bot, db, msg) => {
     } else if (msg.content.startsWith('!revert')) {
         const commitID = msg.content.replace('!revert ', '');
 
-        revert(bot, db, msg, commitID);
+        revert(bot, db, msg, commitID).then(() => {
+            bot.createMessage(msg.channel.id, "Reverted commit: `" + commitID + "`.")
+        })
+    } else if (msg.content.startsWith('!view')) {
+        const data = {
+            "embed": {
+                "title": "Logs for: " + msg.channel.guild.name,
+                "color": 8353673,
+                "timestamp": new Date(),
+                "thumbnail": {
+                    "url": "https://cdn.discordapp.com/embed/avatars/0.png"
+                },
+                "fields": []
+            }
+        }
+        const history = await db.Log.find({guildID: msg.channel.guild.id})
+        bot.createMessage(msg.channel.id, data)
+        history.forEach(change => {
+            if(!change.oldValue) return;
+            data.embed.fields.push({
+                "name": ":tools: **" + change.change.toUpperCase() + '** ' + change.guildPart.toUpperCase(),
+                "value": change.oldValue.name,
+                "inline": true
+            })
+        })
+        bot.createMessage(msg.channel.id, data)
     }
 };
