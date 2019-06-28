@@ -39,6 +39,7 @@ async function revert(bot, db, msg, commitID) {
                 await bot.deleteRole(commit.guildID, commit.partID, 'Revert git action');
             }
         }
+        break
         case 'update': {
             switch (commit.guildPart) {
                 case 'guild': {
@@ -46,19 +47,33 @@ async function revert(bot, db, msg, commitID) {
                 }
                 break
                 case 'channel': {
+                    let channel = bot.getChannel(commit.partID)
+                    if (!channel) {
+                        channel = await msg.channel.guild.createChannel('tempgitchannel', commit.oldValue.type ? commit.oldValue.type : 0, 'Fulfill git action', commit.oldValue.parentID ? commit.oldValue.parentID : null)
+                        commit.partID = channel.id
+                    }
                     await bot.editChannel(commit.partID, commit.oldValue, 'Revert git action');
                 }
                 break
                 case 'role': {
-                    await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
+                    console.log('rupdate', commit.guildID, commit.partID, commit.oldValue, commit.guildPart)
+                    let role = msg.channel.guild.roles.find(r => r.id === commit.partID)
+                    if (!role) {
+                        role = await msg.channel.guild.createRole({name: 'tempgitroleyay'})
+                        commit.partID = role.id
+                    }
 
-                    if (oldValue.hasOwnProperty('position')) {
+                    if (commit.oldValue.hasOwnProperty('position')) {
                         await bot.editRolePosition(commit.guildID, commit.partID, oldValue.position);
                     }
+
+                    if (commit.oldValue.hasOwnProperty('position') && Object.keys(commit.oldValue).length === 1) return
+                    await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
                 }
                 break
             }
         }
+        break
         case 'delete': {
             console.log('del')
             if (commit.guildPart === 'channel') {

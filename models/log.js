@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose');
-const { v1: uuid } = require('uuid');
+const { v4: uuid } = require('uuid');
 
 const logSchema = new Schema({
     guildID: { type: String, required: true },

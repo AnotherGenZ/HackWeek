@@ -1,4 +1,5 @@
 const { cleanChannel, diff } = require('../utils');
+const { v4: uuid } = require('uuid')
 
 module.exports = async (bot, db, channel, oldChannel) => {
     console.log('cupdate')
@@ -24,6 +25,7 @@ module.exports = async (bot, db, channel, oldChannel) => {
             const logArray = await channel.guild.getAuditLogs(1, null, 11) // 11 is CHANNEL_UPDATE
             const user = logArray.users[0]
             if (user.id === bot.user.id) return
+            console.log('GOING FORWARD WITH', newValue, oldValue)
             await db.Log.create({
                 guildID: channel.guild.id,
                 change: 'update',
@@ -31,7 +33,8 @@ module.exports = async (bot, db, channel, oldChannel) => {
                 partID: channel.id,
                 perpID: user.id,
                 oldValue,
-                newValue
+                newValue,
+                commitID: uuid()
             });
         }, 1000)
     }
