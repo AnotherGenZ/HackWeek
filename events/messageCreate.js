@@ -96,6 +96,19 @@ async function revert(bot, db, msg, commitID) {
     }
 }
 
+String.prototype.toProperCase = () => {
+    //TODO: Clean this up lol
+    /*
+    * Sources: 
+    * Sentence Case: https://stackoverflow.com/a/5574446 
+    * Adding a space: https://stackoverflow.com/a/25452019
+    */
+    let str = this.replace(/([A-Z])/g, ' $1').trim()
+    return str.replace(/\w\S*/g, (txt) => {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+};
+
 module.exports = async (bot, db, msg) => {
     if (msg.content === '!ping') {
         bot.createMessage(msg.channel.id, 'Pong!');
@@ -124,21 +137,29 @@ module.exports = async (bot, db, msg) => {
                 "title": "Logs for: " + msg.channel.guild.name,
                 "color": 8353673,
                 "timestamp": new Date(),
-                "thumbnail": {
-                    "url": "https://cdn.discordapp.com/embed/avatars/0.png"
-                },
                 "fields": []
             }
         }
-        const history = await db.Log.find({guildID: msg.channel.guild.id})
-        bot.createMessage(msg.channel.id, data)
+        const amt = msg.content.replace('!view ', '');
+        const history = await db.Log
+        .find({guildID: msg.channel.guild.id})
+        .sort({'date': -1})
+        //.limit(amt * 10) //!view 2 should show only 10-20, realizing now this is only gonna grab more.
+        
         history.forEach(change => {
-            if(!change.oldValue) return;
+            let name = `:tools: **Upgrade** ${change.guildPart.toProperCase()}`
+            let value = `${JSON.stringify(change.newValue).toProperCase()} \nChanged By: <@${change.perpID}> \nID: \`${change.commitID}\``
+            
             data.embed.fields.push({
-                "name": ":tools: **" + change.change.toUpperCase() + '** ' + change.guildPart.toUpperCase(),
-                "value": change.oldValue.name,
+                "name": name,
+                "value": value,
                 "inline": true
             })
+            /*data.embed.fields.push({
+                "name": ":tools: **" + change.change.toUpperCase() + '** ' + change.guildPart.toUpperCase(),
+                "value": `${change.oldValue.name} \nChanged By: <@${change.perpID}>`,
+                "inline": true
+            })*/
         })
         bot.createMessage(msg.channel.id, data)
     }
