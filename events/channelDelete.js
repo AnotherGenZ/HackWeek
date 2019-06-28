@@ -1,4 +1,5 @@
 const { cleanChannel } = require('../utils');
+const { v4: uuid } = require('uuid')
 
 module.exports = async (bot, db, channel) => {
     const channelJSON = cleanChannel(channel);
@@ -7,6 +8,7 @@ module.exports = async (bot, db, channel) => {
         setTimeout(async () => {
             const logArray = await channel.guild.getAuditLogs(1, null, 12) // 12 is CHANNEL_DELETE
             const user = logArray.users[0]
+            if (user.id === bot.user.id) return
             await db.Log.create({
                 guildID: channel.guild.id,
                 change: 'delete',
@@ -14,7 +16,8 @@ module.exports = async (bot, db, channel) => {
                 partID: channel.id,
                 perpID: user.id,
                 oldValue: channelJSON,
-                newValue: {}
+                newValue: {},
+                commitID: uuid()
             });
         }, 1000)
     }
