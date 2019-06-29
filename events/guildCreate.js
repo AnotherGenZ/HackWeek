@@ -1,4 +1,5 @@
 const { cleanGuild, cleanChannel, cleanRole } = require('../utils');
+const { v4: uuid } = require('uuid')
 
 module.exports = async (bot, db, guild) => {
     const guildJSON = cleanGuild(guild);
@@ -10,7 +11,8 @@ module.exports = async (bot, db, guild) => {
         partID: guild.id,
         perpID: bot.user.id,
         oldValue: {},
-        newValue: guildJSON
+        newValue: guildJSON,
+        commitID: uuid()
     });
 
     for (let channel of guild.channels.map(channel => channel)) {
@@ -23,7 +25,8 @@ module.exports = async (bot, db, guild) => {
             partID: channel.id,
             perpID: bot.user.id,
             oldValue: {},
-            newValue: channelJSON
+            newValue: channelJSON,
+            commitID: uuid()
         });
     }
 
@@ -37,7 +40,8 @@ module.exports = async (bot, db, guild) => {
             partID: role.id,
             perpID: bot.user.id,
             oldValue: {},
-            newValue: roleJSON
+            newValue: roleJSON,
+            commitID: uuid()
         });
     }
 };

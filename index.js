@@ -3,6 +3,7 @@ const DB = require('./Database');
 const fs = require('fs');
 const path = require('path');
 const { cleanGuild, cleanChannel, cleanRole } = require('./utils');
+const { v4: uuid } = require('uuid')
 
 require('dotenv').config();
 
@@ -32,7 +33,8 @@ bot.on('ready', async () => {
                 partID: guild.id,
                 perpID: bot.user.id,
                 oldValue: {},
-                newValue: guildJSON
+                newValue: ,
+                commitID: uuid()
             });
 
             for (let channel of guild.channels.map(channel => channel)) {
@@ -45,7 +47,8 @@ bot.on('ready', async () => {
                     partID: channel.id,
                     perpID: bot.user.id,
                     oldValue: {},
-                    newValue: channelJSON
+                    newValue: channelJSON,
+                    commitID: uuid()
                 });
             }
 
@@ -59,7 +62,8 @@ bot.on('ready', async () => {
                     partID: role.id,
                     perpID: bot.user.id,
                     oldValue: {},
-                    newValue: roleJSON
+                    newValue: roleJSON,
+                    commitID: uuid()
                 });
             }
         }

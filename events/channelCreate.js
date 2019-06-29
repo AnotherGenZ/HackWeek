@@ -1,4 +1,5 @@
 const { cleanChannel } = require('../utils');
+const { v4: uuid } = require('uuid')
 
 module.exports = async (bot, db, channel) => {
     const channelJSON = cleanChannel(channel);
@@ -15,7 +16,8 @@ module.exports = async (bot, db, channel) => {
                 partID: channel.id,
                 perpID: user.id,
                 oldValue: {},
-                newValue: channelJSON
+                newValue: channelJSON,
+                commitID: uuid()
             });
         }, 1000)
     }

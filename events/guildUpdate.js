@@ -1,4 +1,5 @@
 const { cleanGuild, diff } = require('../utils');
+const { v4: uuid } = require('uuid')
 
 module.exports = async (bot, db, guild, oldGuild) => {
     const guildJSON = cleanGuild(guild);
@@ -29,7 +30,8 @@ module.exports = async (bot, db, guild, oldGuild) => {
                 partID: guild.id,
                 perpID: user.id,
                 oldValue,
-                newValue
+                newValue,
+                commitID: uuid()
             });
         }, 1000)
     }

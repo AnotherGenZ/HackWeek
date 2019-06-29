@@ -1,4 +1,5 @@
 const { cleanRole } = require('../utils');
+const { v4: uuid } = require('uuid')
 
 module.exports = async (bot, db, guild, role) => {
     const roleJSON = cleanRole(role);
@@ -15,7 +16,8 @@ module.exports = async (bot, db, guild, role) => {
                 partID: role.id,
                 perpID: user.id,
                 oldValue: {},
-                newValue: roleJSON
+                newValue: roleJSON,
+                commitID: uuid()
             });
         }, 1000)
     }
