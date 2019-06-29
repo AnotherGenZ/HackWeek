@@ -91,7 +91,7 @@ module.exports = async (opts, db) => {
                     const unneccessaryPerms = channel.permissionOverwrites.map(o => o.id ? o.id : opts.guildID).filter(o => !passedPermIDs.includes(o)) // These perms are not present in the passed data and should be discarded
 
                     passedPermIDs.forEach(async permID => {
-                        const perm = opts.data.permissionOverwrites.find(permission => permission.id === permID);
+                        const perm = opts.data.permissionOverwrites.find(permission => permID === opts.guildID ? !permission.id : permission.id === permID);
                         await opts.bot.getChannel(opts.affectedID).editPermission(permID ? permID : opts.guildID, perm.allow, perm.deny, perm.type, 'Fulfulling git operation')
                     })
 
