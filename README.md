@@ -1,6 +1,6 @@
 # GuildGit ![HackWeek Badge](https://img.shields.io/badge/discord-HackWeek%202019-7289DA.svg?style=flat-square&logo=discord)
 
-A Discord HackWeek 2019 Submission 
+A Discord HackWeek 2019 Submission
 
 [![GitHub issues](https://img.shields.io/github/issues/MrJohnCoder/HackWeek.svg?style=flat-square)](https://github.com/MrJohnCoder/HackWeek/issues)
 [![GitHub stars](https://img.shields.io/github/stars/MrJohnCoder/HackWeek.svg?style=flat-square)](https://github.com/MrJohnCoder/HackWeek/stargazers)
