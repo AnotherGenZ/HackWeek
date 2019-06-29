@@ -8,6 +8,7 @@ module.exports = async (bot, db, guild) => {
         change: 'create',
         guildPart: 'guild',
         partID: guild.id,
+        perpID: bot.user.id,
         oldValue: {},
         newValue: guildJSON
     });
@@ -20,6 +21,7 @@ module.exports = async (bot, db, guild) => {
             change: 'create',
             guildPart: 'channel',
             partID: channel.id,
+            perpID: bot.user.id,
             oldValue: {},
             newValue: channelJSON
         });
@@ -33,6 +35,7 @@ module.exports = async (bot, db, guild) => {
             change: 'create',
             guildPart: 'role',
             partID: role.id,
+            perpID: bot.user.id,
             oldValue: {},
             newValue: roleJSON
         });

@@ -7,7 +7,7 @@ module.exports = async (bot, db, channel) => {
         setTimeout(async () => {
             const logArray = await channel.guild.getAuditLogs(1, null, 10) // 10 is CHANNEL_CREATE
             const user = logArray.users[0]
-            if (user.id === bot.user.id) return
+
             await db.Log.create({
                 guildID: channel.guild.id,
                 change: 'create',

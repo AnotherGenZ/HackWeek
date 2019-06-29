@@ -7,7 +7,7 @@ module.exports = async (bot, db, guild, role) => {
         setTimeout(async () => {
             const logArray = await guild.getAuditLogs(1, null, 30) // 30 is ROLE_CREATE
             const user = logArray.users[0]
-            if (user.id === bot.user.id) return
+
             await db.Log.create({
                 guildID: guild.id,
                 change: 'create',

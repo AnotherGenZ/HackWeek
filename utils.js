@@ -12,10 +12,11 @@ function cleanGuild(guild, alreadyJSON = false) {
         delete guildJSON.members;
         delete guildJSON.memberCount;
         delete guildJSON.joinedAt;
-        delete guildJSON.large;
         delete guildJSON.maxPresences;
         delete guildJSON.id;
         delete guildJSON.unavailable;
+    } else {
+        delete guildJSON.systemChannelID;
     }
 
     delete guildJSON.ownerID;
@@ -24,6 +25,8 @@ function cleanGuild(guild, alreadyJSON = false) {
     delete guildJSON.splash;
     delete guildJSON.banner;
     delete guildJSON.features;
+    delete guildJSON.large;
+    delete guildJSON.defaultNotifications;
 
     return guildJSON;
 }
@@ -48,7 +51,7 @@ function cleanChannel(channel, alreadyJSON = false) {
         delete channelJSON.nsfw;
     }
 
-    channelJSON.permissionOverwrites = channelJSON.permissionOverwrites.map(item => item);
+    channelJSON.permissionOverwrites = channelJSON.permissionOverwrites.map(item => item.toJSON());
 
     return channelJSON;
 }
@@ -63,6 +66,8 @@ function cleanRole(role, alreadyJSON = false) {
         delete roleJSON.guild;
         delete roleJSON.id;
         delete roleJSON.createdAt;
+    } else {
+        roleJSON.permissions = role.permissions.toJSON();
     }
 
     delete roleJSON.managed;
@@ -75,9 +80,10 @@ function diff(oldValue, newValue) {
 
     const changedAST = deepDiff(oldValue, newValue);
 
-    for (let change of changedAST) {
+    if (!changedAST) return changed;
 
-        if (change.path.length === 1) {
+    for (let change of changedAST) {
+        if (change.path.length > 0) {
             changed.push(change.path[0]);
         }
     }
@@ -85,13 +91,13 @@ function diff(oldValue, newValue) {
     return changed;
 }
 
-async function createVirtualRepresentation(db, commit) { // commit should not be commitID but _id
+async function createVirtualRepresentation(db, commit, atCommit = false) { // commit should not be commitID but _id
     let change = await db.Log.findOne({ _id: Types.ObjectId(commit) }).lean().exec();
 
     return await db.Log.aggregate([
         {
             $match: {
-                _id: { $lt: change._id },
+                _id: atCommit ? { $lte: change._id } : { $lt: change._id },
                 guildID: change.guildID
             }
         },

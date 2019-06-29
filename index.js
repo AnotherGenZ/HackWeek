@@ -2,6 +2,7 @@ const Eris = require('eris');
 const DB = require('./Database');
 const fs = require('fs');
 const path = require('path');
+const { cleanGuild, cleanChannel, cleanRole } = require('./utils');
 
 require('dotenv').config();
 
@@ -14,8 +15,55 @@ const proxy = new Proxy(db, {
     }
 });
 
-bot.on('ready', () => {
+bot.on('ready', async () => {
     console.log('Git ready to log!');
+
+    bot.guilds.map(guild => guild).forEach(async guild => {
+        let guildCommits = await proxy.Log.find({ guildID: guild.id });
+
+        if (guildCommits.length === 0) {
+            console.log('Creating commits for', guild.id);
+            const guildJSON = cleanGuild(guild);
+
+            await proxy.Log.create({
+                guildID: guild.id,
+                change: 'create',
+                guildPart: 'guild',
+                partID: guild.id,
+                perpID: bot.user.id,
+                oldValue: {},
+                newValue: guildJSON
+            });
+
+            for (let channel of guild.channels.map(channel => channel)) {
+                const channelJSON = cleanChannel(channel);
+
+                await proxy.Log.create({
+                    guildID: guild.id,
+                    change: 'create',
+                    guildPart: 'channel',
+                    partID: channel.id,
+                    perpID: bot.user.id,
+                    oldValue: {},
+                    newValue: channelJSON
+                });
+            }
+
+            for (let role of guild.roles.map(role => role)) {
+                const roleJSON = cleanRole(role);
+
+                await proxy.Log.create({
+                    guildID: guild.id,
+                    change: 'create',
+                    guildPart: 'role',
+                    partID: role.id,
+                    perpID: bot.user.id,
+                    oldValue: {},
+                    newValue: roleJSON
+                });
+            }
+        }
+    });
 });
 
 fs.readdir(path.join(__dirname, 'events'), (err, files) => {

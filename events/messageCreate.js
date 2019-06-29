@@ -6,7 +6,7 @@ async function rollback(bot, db, msg, commitID) {
 
     if (commit.guildID != msg.channel.guild.id) return bot.createMessage(msg.channel.id, 'That commit does not belong to this guild!');
 
-    let reps = await createRep(db, commit._id);
+    let reps = await createRep(db, commit._id, true);
 
     reps = reps.map(r => {
         r.id = r._id
@@ -22,7 +22,7 @@ async function rollback(bot, db, msg, commitID) {
             data: r.virtual
         };
 
-        await magic(opts);
+        await magic(opts, db);
     });
 }
 
@@ -39,27 +39,29 @@ async function revert(bot, db, msg, commitID) {
                 await bot.deleteRole(commit.guildID, commit.partID, 'Revert git action');
             }
         }
-        break
+            break
         case 'update': {
             switch (commit.guildPart) {
                 case 'guild': {
                     await bot.editGuild(commit.guildID, commit.oldValue, 'Revert git action');
                 }
-                break
+                    break;
                 case 'channel': {
-                    let channel = bot.getChannel(commit.partID)
+                    let channel = bot.getChannel(commit.partID);
+
                     if (!channel) {
                         channel = await msg.channel.guild.createChannel('tempgitchannel', commit.oldValue.type ? commit.oldValue.type : 0, 'Fulfill git action', commit.oldValue.parentID ? commit.oldValue.parentID : null)
                         commit.partID = channel.id
                     }
+
                     await bot.editChannel(commit.partID, commit.oldValue, 'Revert git action');
                 }
-                break
+                    break;
                 case 'role': {
-                    console.log('rupdate', commit.guildID, commit.partID, commit.oldValue, commit.guildPart)
-                    let role = msg.channel.guild.roles.find(r => r.id === commit.partID)
+                    let role = msg.channel.guild.roles.find(r => r.id === commit.partID);
+
                     if (!role) {
-                        role = await msg.channel.guild.createRole({name: 'tempgitroleyay'})
+                        role = await msg.channel.guild.createRole({ name: 'tempgitroleyay' })
                         commit.partID = role.id
                     }
 
@@ -68,36 +70,44 @@ async function revert(bot, db, msg, commitID) {
                     }
 
                     if (commit.oldValue.hasOwnProperty('position') && Object.keys(commit.oldValue).length === 1) return
+
+                    if (commit.oldValue.permissions) {
+                        commit.oldValue.permissions = commit.oldValue.permissions.allow | commit.oldValue.permissions.deny
+                    }
+
                     await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
                 }
-                break
+                    break;
             }
         }
-        break
+            break;
         case 'delete': {
-            console.log('del')
+            let obj;
+
             if (commit.guildPart === 'channel') {
-                await bot.createChannel(commit.guildID, commit.oldValue.name, commit.oldValue.type, 'Revert Git action', commit.oldValue);
+                obj = await bot.createChannel(commit.guildID, commit.oldValue.name, commit.oldValue.type, 'Revert Git action', commit.oldValue);
+                await db.Log.updateMany({ partID: commit.partID, guildPart: commit.guildPart }, { partID: obj.id });
             } else if (commit.guildPart === 'role') {
-                await bot.createRole(commit.guildID, commit.oldValue, 'Revert git action');
+                obj = await bot.createRole(commit.guildID, commit.oldValue, 'Revert git action');
+                await db.Log.updateMany({ partID: commit.partID, guildPart: commit.guildPart }, { partID: obj.id });
             }
-            // let reps = await createRep(db, commit._id);
-            // let rep = reps.find(r => r._id === commit.partID);
 
-            // const opts = {
-            //     bot: bot,
-            //     guildID: msg.channel.guild.id,
-            //     type: rep.type,
-            //     data: rep.virtual
-            // };
+            const opts = {
+                bot: bot,
+                guildID: msg.channel.guild.id,
+                type: commit.guildPart,
+                data: commit.oldValue,
+                affectedID: obj.id
+            };
 
-            // await magic(opts);
+            await magic(opts, db);
         }
+            break;
     }
 }
 
-String.prototype.toProperCase = () => {
-    //TODO: Clean this up lol
+String.prototype.toProperCase = function () {
+    // TODO: Clean this up lol
     /*
     * Sources: 
     * Sentence Case: https://stackoverflow.com/a/5574446 
@@ -110,6 +120,7 @@ String.prototype.toProperCase = () => {
 };
 
 module.exports = async (bot, db, msg) => {
+
     if (msg.content === '!ping') {
         bot.createMessage(msg.channel.id, 'Pong!');
     } else if (msg.content.startsWith('!fetch')) {
@@ -128,9 +139,7 @@ module.exports = async (bot, db, msg) => {
     } else if (msg.content.startsWith('!revert')) {
         const commitID = msg.content.replace('!revert ', '');
 
-        revert(bot, db, msg, commitID).then(() => {
-            bot.createMessage(msg.channel.id, "Reverted commit: `" + commitID + "`.")
-        })
+        revert(bot, db, msg, commitID);
     } else if (msg.content.startsWith('!view')) {
         const data = {
             "embed": {
@@ -140,16 +149,21 @@ module.exports = async (bot, db, msg) => {
                 "fields": []
             }
         }
-        const amt = msg.content.replace('!view ', '');
+        const amt = parseInt(msg.content.replace('!view ', '') !== '' ? msg.content.replace('!view ', '') : '1');
         const history = await db.Log
-        .find({guildID: msg.channel.guild.id})
-        .sort({'date': -1})
-        //.limit(amt * 10) //!view 2 should show only 10-20, realizing now this is only gonna grab more.
-        
+            .find({ guildID: msg.channel.guild.id })
+            .sort({ 'date': 1 })
+            .skip((amt - 1) * 10)
+            .limit(10)
+            .exec();
+
+        // console.log(history);
+
         history.forEach(change => {
+            if (!change.newValue) change.newValue = {};
             let name = `:tools: **Upgrade** ${change.guildPart.toProperCase()}`
             let value = `${JSON.stringify(change.newValue).toProperCase()} \nChanged By: <@${change.perpID}> \nID: \`${change.commitID}\``
-            
+
             data.embed.fields.push({
                 "name": name,
                 "value": value,
@@ -160,7 +174,8 @@ module.exports = async (bot, db, msg) => {
                 "value": `${change.oldValue.name} \nChanged By: <@${change.perpID}>`,
                 "inline": true
             })*/
-        })
+        });
+
         bot.createMessage(msg.channel.id, data)
     }
 };

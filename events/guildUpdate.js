@@ -6,6 +6,8 @@ module.exports = async (bot, db, guild, oldGuild) => {
 
     let changedKeys = diff(oldGuildJSON, guildJSON);
 
+    if (changedKeys.length === 0) return;
+
     let oldValue = {};
     let newValue = {};
 
@@ -19,7 +21,7 @@ module.exports = async (bot, db, guild, oldGuild) => {
         setTimeout(async () => {
             const logArray = await guild.getAuditLogs(1, null, 1) // 1 is GUILD_UPDATE
             const user = logArray.users[0]
-            if (user.id === bot.user.id) return
+
             await db.Log.create({
                 guildID: guild.id,
                 change: 'update',
@@ -32,5 +34,5 @@ module.exports = async (bot, db, guild, oldGuild) => {
         }, 1000)
     }
 
-    
+
 };
