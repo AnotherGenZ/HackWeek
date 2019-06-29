@@ -87,8 +87,8 @@ module.exports = async (opts, db) => {
                 }
 
                 if (opts.data.hasOwnProperty('permissionOverwrites') && opts.data.permissionOverwrites.length !== 0) {
-                    const passedPermIDs = opts.data.permissionOverwrites.map(o => o.id)
-                    const unneccessaryPerms = channel.permissionOverwrites.map(o => o.id).filter(o => !passedPermIDs.includes(o)) // These perms are not present in the passed data and should be discarded
+                    const passedPermIDs = opts.data.permissionOverwrites.map(o => o.id ? o.id : opts.guildID);
+                    const unneccessaryPerms = channel.permissionOverwrites.map(o => o.id ? o.id : opts.guildID).filter(o => !passedPermIDs.includes(o)) // These perms are not present in the passed data and should be discarded
 
                     passedPermIDs.forEach(async permID => {
                         const perm = opts.data.permissionOverwrites.find(permission => permission.id === permID);
