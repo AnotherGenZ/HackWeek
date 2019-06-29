@@ -33,7 +33,7 @@ bot.on('ready', async () => {
                 partID: guild.id,
                 perpID: bot.user.id,
                 oldValue: {},
-                newValue: ,
+                newValue: {},
                 commitID: uuid()
             });
 

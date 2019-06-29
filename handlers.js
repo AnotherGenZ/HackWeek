@@ -82,7 +82,7 @@ module.exports = async (opts, db) => {
                 const channel = await opts.bot.getChannel(opts.affectedID);
 
                 if (!channel) {
-                    console.log(opts.affectedID);
+                    //console.log(opts.affectedID);
                     return await createChannel(opts, db);
                 }
 

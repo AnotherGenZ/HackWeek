@@ -4,6 +4,7 @@ const magic = require('../handlers');
 async function rollback(bot, db, msg, commitID) {
     let commit = await db.Log.findOne({ commitID });
 
+    if (!commit) return bot.createMessage(msg.channel.id, 'Commit not found!');
     if (commit.guildID != msg.channel.guild.id) return bot.createMessage(msg.channel.id, 'That commit does not belong to this guild!');
 
     let reps = await createRep(db, commit._id, true);
@@ -28,22 +29,26 @@ async function rollback(bot, db, msg, commitID) {
 
 async function revert(bot, db, msg, commitID) {
     let commit = await db.Log.findOne({ commitID });
-
+    
+    if (!commit) return bot.createMessage(msg.channel.id, 'Commit not found!');
     if (commit.guildID != msg.channel.guild.id) return bot.createMessage(msg.channel.id, 'That commit does not belong to this guild!');
 
     switch (commit.change) {
         case 'create': {
             if (commit.guildPart === 'channel') {
                 await bot.deleteChannel(commit.partID, 'Revert Git action');
+                bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
             } else if (commit.guildPart === 'role') {
-                await bot.deleteRole(commit.guildID, commit.partID, 'Revert git action');
+                await bot.deleteRole(commit.guildID, commit.partID, 'Revert Git action');
+                bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
             }
         }
             break
         case 'update': {
             switch (commit.guildPart) {
                 case 'guild': {
-                    await bot.editGuild(commit.guildID, commit.oldValue, 'Revert git action');
+                    await bot.editGuild(commit.guildID, commit.oldValue, 'Revert Git action');
+                    bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
                 }
                     break;
                 case 'channel': {
@@ -55,6 +60,7 @@ async function revert(bot, db, msg, commitID) {
                     }
 
                     await bot.editChannel(commit.partID, commit.oldValue, 'Revert git action');
+                    bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
                 }
                     break;
                 case 'role': {
@@ -75,7 +81,8 @@ async function revert(bot, db, msg, commitID) {
                         commit.oldValue.permissions = commit.oldValue.permissions.allow | commit.oldValue.permissions.deny
                     }
 
-                    await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert git action');
+                    await bot.editRole(commit.guildID, commit.partID, commit.oldValue, 'Revert Git action');
+                    bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
                 }
                     break;
             }
@@ -87,9 +94,11 @@ async function revert(bot, db, msg, commitID) {
             if (commit.guildPart === 'channel') {
                 obj = await bot.createChannel(commit.guildID, commit.oldValue.name, commit.oldValue.type, 'Revert Git action', commit.oldValue);
                 await db.Log.updateMany({ partID: commit.partID, guildPart: commit.guildPart }, { partID: obj.id });
+                bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
             } else if (commit.guildPart === 'role') {
-                obj = await bot.createRole(commit.guildID, commit.oldValue, 'Revert git action');
+                obj = await bot.createRole(commit.guildID, commit.oldValue, 'Revert Git action');
                 await db.Log.updateMany({ partID: commit.partID, guildPart: commit.guildPart }, { partID: obj.id });
+                bot.createMessage(msg.channel.id, `Rolled back to commit: \`${commitID}\``)
             }
 
             const opts = {
@@ -123,23 +132,24 @@ module.exports = async (bot, db, msg) => {
 
     if (msg.content === '!ping') {
         bot.createMessage(msg.channel.id, 'Pong!');
-    } else if (msg.content.startsWith('!fetch')) {
-        const commitID = msg.content.replace('!fetch ', '')
-        const commit = await db.Log.findOne({ commitID });
-        const rep = await createRep(db, commit._id)
-        console.log(rep)
     } else if (msg.content.startsWith('!goto')) {
         const commitID = msg.content.replace('!goto ', '');
 
-        rollback(bot, db, msg, commitID);
+        rollback(bot, db, msg, commitID).catch(err => {
+            bot.createMessage(msg.channel.id, `Error rolling back to commit. Reason:\n${err}`)
+        })
     } else if (msg.content.startsWith('!rollback')) {
         const commitID = msg.content.replace('!rollback ', '');
 
-        rollback(bot, db, msg, commitID);
+        rollback(bot, db, msg, commitID).catch(err => {
+            bot.createMessage(msg.channel.id, `Error rolling back to commit. Reason:\n${err}`)
+        })
     } else if (msg.content.startsWith('!revert')) {
         const commitID = msg.content.replace('!revert ', '');
 
-        revert(bot, db, msg, commitID);
+        revert(bot, db, msg, commitID).catch(err => {
+            bot.createMessage(msg.channel.id, `Error reverting to commit. Reason:\n${err}`)
+        })
     } else if (msg.content.startsWith('!view')) {
         const data = {
             "embed": {
@@ -152,28 +162,26 @@ module.exports = async (bot, db, msg) => {
         const amt = parseInt(msg.content.replace('!view ', '') !== '' ? msg.content.replace('!view ', '') : '1');
         const history = await db.Log
             .find({ guildID: msg.channel.guild.id })
-            .sort({ 'date': 1 })
+            .sort({ 'date': -1 }) //https://mongoosejs.com/docs/api/query.html#query_Query-sort
             .skip((amt - 1) * 10)
             .limit(10)
             .exec();
 
-        // console.log(history);
-
         history.forEach(change => {
             if (!change.newValue) change.newValue = {};
-            let name = `:tools: **Upgrade** ${change.guildPart.toProperCase()}`
-            let value = `${JSON.stringify(change.newValue).toProperCase()} \nChanged By: <@${change.perpID}> \nID: \`${change.commitID}\``
+            let valStr = ''
 
+            Object.keys(change.newValue).forEach(type => {
+                valStr += type.toProperCase() + ': ' + change.newValue[type] + '\n'
+            })
+
+            let name = `:tools: **${change.change.toProperCase()}** ${change.guildPart.toProperCase()}`
+            let value = `${valStr} \nChanged By: <@${change.perpID}> \nID: \`${change.commitID}\``
             data.embed.fields.push({
                 "name": name,
                 "value": value,
                 "inline": true
             })
-            /*data.embed.fields.push({
-                "name": ":tools: **" + change.change.toUpperCase() + '** ' + change.guildPart.toUpperCase(),
-                "value": `${change.oldValue.name} \nChanged By: <@${change.perpID}>`,
-                "inline": true
-            })*/
         });
 
         bot.createMessage(msg.channel.id, data)
